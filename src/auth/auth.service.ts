@@ -1,6 +1,7 @@
 import {
   ConflictException,
   Injectable,
+  NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
@@ -17,7 +18,10 @@ export class AuthService {
     private readonly jwtService: JwtService,
   ) {}
 
-  async register(registerDto: RegisterDto) {
+  async register(
+    registerDto: RegisterDto,
+    profilePhoto?: { filename: string; mimeType: string },
+  ) {
     const {
       name,
       email,
@@ -59,6 +63,8 @@ export class AuthService {
       country,
       state,
       city,
+      profilePhotoFilename: profilePhoto?.filename ?? null,
+      profilePhotoMimeType: profilePhoto?.mimeType ?? null,
     });
 
     return {
@@ -74,14 +80,71 @@ export class AuthService {
         country: user.country,
         state: user.state,
         city: user.city,
+        profilePhotoUrl: user.profilePhotoFilename
+          ? '/auth/me/profile-photo'
+          : null,
       },
     };
   }
 
-  async login(loginDto: LoginDto) {
-    const { login, password } = loginDto;
+  async getCurrentUser(userId: number) {
+    const user = await this.usersService.findById(userId);
 
-    const user = await this.usersService.findByLogin(login);
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    return {
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      mobile: user.mobile,
+      profession: user.profession,
+      gender: user.gender,
+      dateOfBirth: user.dateOfBirth,
+      country: user.country,
+      state: user.state,
+      city: user.city,
+      profilePhotoUrl: user.profilePhotoFilename
+        ? '/auth/me/profile-photo'
+        : null,
+    };
+  }
+
+  async getProfilePhoto(userId: number) {
+    const user = await this.usersService.findById(userId);
+
+    if (!user?.profilePhotoFilename || !user.profilePhotoMimeType) {
+      throw new NotFoundException('Profile photo not found');
+    }
+
+    return {
+      filename: user.profilePhotoFilename,
+      mimeType: user.profilePhotoMimeType,
+    };
+  }
+
+  async updateProfilePhoto(
+    userId: number,
+    photo: { filename: string; mimeType: string },
+  ) {
+    const user = await this.usersService.findById(userId);
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    user.profilePhotoFilename = photo.filename;
+    user.profilePhotoMimeType = photo.mimeType;
+    await this.usersService.create(user);
+
+    return { profilePhotoUrl: '/auth/me/profile-photo' };
+  }
+
+  async login(loginDto: LoginDto) {
+    const { email, password } = loginDto;
+
+    const user = await this.usersService.findByLogin(email.trim());
 
     if (!user) {
       throw new UnauthorizedException('Invalid email/mobile or password');
@@ -118,6 +181,9 @@ export class AuthService {
         country: user.country,
         state: user.state,
         city: user.city,
+        profilePhotoUrl: user.profilePhotoFilename
+          ? '/auth/me/profile-photo'
+          : null,
       },
     };
   }

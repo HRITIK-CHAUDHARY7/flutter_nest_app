@@ -29,6 +29,12 @@ export class User {
   @Column({ nullable: true, length: 20 })
   gender: string;
 
+  @Column({ type: 'varchar', nullable: true, length: 255 })
+  profilePhotoFilename: string | null;
+
+  @Column({ type: 'varchar', nullable: true, length: 100 })
+  profilePhotoMimeType: string | null;
+
   @Column({ type: 'date', nullable: true })
   dateOfBirth: string;
 
@@ -38,11 +44,11 @@ export class User {
   @UpdateDateColumn()
   updatedAt: Date;
   @Column()
-country: string;
+  country: string;
 
-@Column()
-state: string;
+  @Column()
+  state: string;
 
-@Column()
-city: string;
+  @Column()
+  city: string;
 }

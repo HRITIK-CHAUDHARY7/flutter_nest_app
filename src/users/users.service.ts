@@ -16,6 +16,10 @@ export class UsersService {
     });
   }
 
+  async findById(id: number): Promise<User | null> {
+    return this.userRepository.findOne({ where: { id } });
+  }
+
   async findByMobile(mobile: string): Promise<User | null> {
     return this.userRepository.findOne({
       where: { mobile },
