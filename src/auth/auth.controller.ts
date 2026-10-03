@@ -22,7 +22,7 @@ import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
 import { JwtAuthGuard } from './jwt-auth.guard';
 import type { AuthenticatedRequest } from './jwt-auth.guard';
-import { PhotosService } from '../users/photos.service';
+import { MAX_IMAGE_SIZE_BYTES, PhotosService } from '../users/photos.service';
 import type { UploadedImage } from '../users/photos.service';
 
 @Controller('auth')
@@ -32,7 +32,7 @@ export class AuthController {
     private readonly photosService: PhotosService,
   ) {}
 
-  @UseInterceptors(FileInterceptor('profilePhoto', { limits: { fileSize: 5 * 1024 * 1024 } }))
+  @UseInterceptors(FileInterceptor('profilePhoto', { limits: { fileSize: MAX_IMAGE_SIZE_BYTES } }))
   @Post('register')
   async register(
     @Body() registerDto: RegisterDto,
@@ -69,7 +69,7 @@ export class AuthController {
 
   @UseGuards(JwtAuthGuard)
   @Put('me/profile-photo')
-  @UseInterceptors(FileInterceptor('photo', { limits: { fileSize: 5 * 1024 * 1024 } }))
+  @UseInterceptors(FileInterceptor('photo', { limits: { fileSize: MAX_IMAGE_SIZE_BYTES } }))
   async updateProfilePhoto(
     @Req() request: AuthenticatedRequest,
     @UploadedFile() photo?: UploadedImage,
@@ -88,7 +88,7 @@ export class AuthController {
 
   @UseGuards(JwtAuthGuard)
   @Post('photos')
-  @UseInterceptors(FileInterceptor('photo', { limits: { fileSize: 5 * 1024 * 1024 } }))
+  @UseInterceptors(FileInterceptor('photo', { limits: { fileSize: MAX_IMAGE_SIZE_BYTES } }))
   createPhoto(
     @Req() request: AuthenticatedRequest,
     @UploadedFile() photo?: UploadedImage,

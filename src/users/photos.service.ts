@@ -16,6 +16,8 @@ export interface UploadedImage {
   originalname: string;
 }
 
+export const MAX_IMAGE_SIZE_BYTES = 20 * 1024 * 1024;
+
 const allowedTypes: Record<string, string> = {
   'image/jpeg': '.jpg',
   'image/png': '.png',
@@ -37,8 +39,12 @@ export class PhotosService {
   }> {
     const extension = allowedTypes[image.mimetype];
 
-    if (!extension || image.buffer.length > 5 * 1024 * 1024) {
-      throw new BadRequestException('Use a JPG, PNG, or WebP image up to 5 MB');
+        if (!extension) {
+          throw new BadRequestException('Use a JPG, PNG, or WebP image');
+        }
+
+        if (image.buffer.length > MAX_IMAGE_SIZE_BYTES) {
+          throw new BadRequestException('Image must be 20 MB or smaller');
     }
 
     const filename = `${randomUUID()}${extension}`;
